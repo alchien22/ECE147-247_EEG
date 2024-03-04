@@ -9,6 +9,9 @@ def train_data_prep(X, y, sub_sample, average, noise):
         sub_sample: An integer for the subsampling rate.
         average: An integer for averaging size.
         noise: A boolean for adding noise.
+
+    Returns:
+        A np.array with preprocessed EEG training data.
     """
     total_X = None
     total_y = None
@@ -49,6 +52,14 @@ def train_data_prep(X, y, sub_sample, average, noise):
 
 
 def test_data_prep(X):
+    """Preprocesses EEG testing data.
+    
+    Args:
+        X: A np.array with EEG testing input data.
+    
+    Returns:
+        A np.array with preprocessed EEG testing data.
+    """
     total_X = None
     
     # Trimming the data (sample,22,1000) -> (sample,22,800)
@@ -65,7 +76,15 @@ def test_data_prep(X):
 
 
 def to_categorical(y, num_classes):
-    """ 1-hot encodes a tensor """
+    """One-hot encodes a numpy array.
+
+    Args:
+        y: A np.array with EEG labels.
+        num_classes: An integer for number of classes.
+    
+    Returns:
+        A np.array with one-hot encoded labels.
+    """
     return np.eye(num_classes, dtype='uint8')[y]
 
 
