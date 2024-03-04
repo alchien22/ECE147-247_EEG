@@ -1,4 +1,6 @@
 import numpy as np
+import torch
+from torch.utils.data import TensorDataset, DataLoader
 
 def train_data_prep(X, y, sub_sample, average, noise):
     """Preprocesses EEG training data.
@@ -16,11 +18,11 @@ def train_data_prep(X, y, sub_sample, average, noise):
     total_X = None
     total_y = None
     
-    # Trimming the data (sample, 22, 1000) -> (sample, 22, 800)
-    X = X[:, :, 0:800]
+    # Trimming the data (sample, 22, 1000) -> (sample, 22, 500)
+    X = X[:, :, 0:500]
     print('Shape of X after trimming:', X.shape)
     
-    # Maxpooling the data (sample, 22, 800) -> (sample, 22, 800 / sub_sample)
+    # Maxpooling the data (sample, 22, 500) -> (sample, 22, 500 / sub_sample)
     X_max = np.max(X.reshape(X.shape[0], X.shape[1], -1, sub_sample), axis=3)
     
     
@@ -38,7 +40,6 @@ def train_data_prep(X, y, sub_sample, average, noise):
     
     # Subsampling
     for i in range(sub_sample):
-        
         X_subsample = X[:, :, i::sub_sample] + \
                             (np.random.normal(0.0, 0.5, X[:, :, i::sub_sample].shape) if noise else 0.0)
             
@@ -62,11 +63,11 @@ def test_data_prep(X):
     """
     total_X = None
     
-    # Trimming the data (sample,22,1000) -> (sample,22,800)
-    X = X[:, :, 0:800]
+    # Trimming the data (sample, 22, 1000) -> (sample, 22, 500)
+    X = X[:, :, 0:500]
     print('Shape of X after trimming:',X.shape)
     
-    # Maxpooling the data (sample,22,800) -> (sample,22,800/sub_sample)
+    # Maxpooling the data (sample, 22, 500) -> (sample, 22, 500 / sub_sample)
     X_max = np.max(X.reshape(X.shape[0], X.shape[1], -1, 2), axis=3)
     
     total_X = X_max
@@ -88,12 +89,16 @@ def to_categorical(y, num_classes):
     return np.eye(num_classes, dtype='uint8')[y]
 
 
-def load_data():
+def load_data(batch_size, shuffle=True):
     """Loads data from numpy files.
 
+    Args:
+        batch_size: An integer for dataloader batch size.
+        shuffle (default is True): A boolean for shuffling data samples.
+
     Returns:
-        A tuple containing the preprocessed data in the form of
-            (x_train, y_train, x_valid, y_valid, x_test, y_test).
+        A tuple containing the train, val, and test dataloaders in the form
+            (train_dataloader, val_dataloader, test_dataloader).
     """
     ## Loading the dataset
     X_test = np.load("data/X_test.npy")
@@ -160,4 +165,12 @@ def load_data():
     print('Shape of validation set after dimension reshaping:', x_valid.shape)
     print('Shape of test set after dimension reshaping:', x_test.shape)
 
-    return x_train, y_train, x_valid, y_valid, x_test, y_test
+    train_iter = TensorDataset(torch.tensor(x_train), torch.tensor(y_train))
+    val_iter = TensorDataset(torch.tensor(x_valid), torch.tensor(y_valid))
+    test_iter = TensorDataset(torch.tensor(x_test), torch.tensor(y_test))
+
+    train_dataloader = DataLoader(dataset=train_iter, batch_size=batch_size, shuffle=shuffle)
+    val_dataloader = DataLoader(dataset=val_iter, batch_size=batch_size, shuffle=shuffle)
+    test_dataloader = DataLoader(dataset=test_iter, batch_size=batch_size, shuffle=shuffle)
+
+    return train_dataloader, val_dataloader, test_dataloader
