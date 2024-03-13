@@ -1,5 +1,5 @@
 import torch
-import tqdm
+from tqdm import tqdm
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
 import numpy as np
@@ -36,24 +36,30 @@ def train(model, train_loader, val_loader, optimizer, criterion, device, num_epo
         train_total = 0
         
         # Use tqdm to display a progress bar during training
-        with tqdm.tqdm(total=len(train_loader), desc=f'Epoch {epoch + 1}/{num_epochs}') as pbar:
+        with tqdm(total=len(train_loader), desc=f'Epoch {epoch + 1}/{num_epochs}') as pbar:
             for inputs, labels in train_loader:
                 #get rid of the one-hot encoding, and just get the class indices of the label
                 #print(labels)
                 labels = torch.argmax(labels, dim=1)
                 
                 # Move inputs and labels to device
-                inputs = inputs.to(device)
+                inputs = inputs.float().to(device)
                 labels = labels.to(device)
                
                 # Zero out gradients
                 optimizer.zero_grad()
               
                 # Compute the logits and loss
-                model = model.double()
+                model = model.float()
                 logits = model(inputs)
                
                 loss = criterion(logits.float(), labels.long())
+
+                # L1 Loss
+                # l1_weight = 2e-4
+                # l1_loss = l1_weight * model.compute_l1_loss()
+
+                # loss += l1_loss
 
                 # Backpropagate the loss
                 loss.backward()
@@ -114,10 +120,10 @@ def evaluate(model, test_loader, criterion, device):
 
         for inputs, labels in test_loader:
             # Move inputs and labels to device
-            inputs = inputs.to(device)
+            inputs = inputs.float().to(device)
             labels = labels.to(device)
             labels = torch.argmax(labels, dim=1)
-            model = model.double()
+            model = model.float()
             
             # Compute the logits and loss
             logits = model(inputs)
