@@ -4,5 +4,3 @@ _MACOSX
 env/
 __pycache__
 .DS_Store
-weights/
-main.ipynb
