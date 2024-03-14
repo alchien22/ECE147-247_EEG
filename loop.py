@@ -1,7 +1,6 @@
 import torch
 from tqdm import tqdm
 import matplotlib.pyplot as plt
-from sklearn.metrics import confusion_matrix
 import numpy as np
 
 #from torch.utils.tensorboard import SummaryWriter

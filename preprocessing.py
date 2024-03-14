@@ -56,7 +56,6 @@ def train_data_prep(X, y, sub_sample, average, noise):
     total_X = np.vstack((total_X, X_augmented))
     total_y = np.hstack((total_y, y))
     
-    
     # Smooth Time Mask
     #X_tensor = torch.from_numpy(X[:, :, 0:400])   
     #smooth_time_mask = SmoothTimeMask(probability)
@@ -197,7 +196,7 @@ def load_data(batch_size, shuffle=True):
     y_test -= 769
     
     # First generating the training and validation indices using random splitting
-    ind_valid = np.random.choice(2115, 500, replace=False)
+    ind_valid = np.random.choice(2115, 1000, replace=False)
     ind_train = np.array(list(set(range(2115)).difference(set(ind_valid))))
 
     # Creating the training and validation sets using the generated indices
@@ -220,8 +219,8 @@ def load_data(batch_size, shuffle=True):
     y_valid_prep = to_categorical(y_valid_prep, 4)
     y_test = to_categorical(y_test, 4)
     
-    print('Shape of training labels after categorical conversion:', y_train.shape)
-    print('Shape of validation labels after categorical conversion:', y_valid.shape)
+    print('Shape of training labels after categorical conversion:', y_train_prep.shape)
+    print('Shape of validation labels after categorical conversion:', y_valid_prep.shape)
     print('Shape of test labels after categorical conversion:', y_test.shape)
     
     x_test = X_test_prep.reshape(X_test_prep.shape[0], X_test_prep.shape[1], X_test_prep.shape[2])
