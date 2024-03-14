@@ -2,3 +2,4 @@ data/
 _MACOSX
 *.zip
 env/
+__pycache__
