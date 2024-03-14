@@ -147,4 +147,37 @@ def evaluate(model, test_loader, criterion, device):
 
     return avg_loss, accuracy
 
-    
+
+def test(models, test_loader, device):
+    for model in models:
+        model.eval()  # Set model to evaluation mode
+
+    num_correct = 0
+    num_samples = 0
+
+    with torch.no_grad():
+        for inputs, labels in test_loader:
+            inputs = inputs.float().to(device)
+            labels = labels.to(device)
+            labels = torch.argmax(labels, dim=1)
+            model = model.float()
+
+            sum_logits = None
+
+            for model in models:
+                logits = model(inputs).float()
+                probabilities = torch.softmax(logits, dim=1)
+
+            if sum_logits is None:
+                sum_logits = probabilities
+            else:
+                sum_logits += probabilities
+
+            avg_probabilities = sum_logits/len(models)
+            ensemble_predictions = torch.argmax(avg_probabilities, dim=1)
+
+            num_correct += (ensemble_predictions == labels).sum().item()
+            num_samples += len(inputs)
+
+    accuracy = num_correct / num_samples
+    return accuracy

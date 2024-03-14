@@ -93,15 +93,14 @@ def train_data_prep(X, y, sub_sample, average, noise):
     total_X = np.vstack((total_X, X_augmented))
     total_y = np.hstack((total_y, y)) 
     
-    #Bandstop Filter
-    #X_tensor = torch.from_numpy(X[:, :, 0:400])   
-    #sign_flip = BandstopFilter(probability, sfreq=250)
-    #X_augmented, y = BandstopFilter.operation(X_tensor, y, sfreq=250, bandwidth=2, freqs_to_notch)
-    #total_X = np.vstack((total_X, X_augmented))
-    #total_y = np.hstack((total_y, y)) 
+    # Bandstop Filter
+    # X_tensor = torch.from_numpy(X[:, :, 0:400])   
+    # sign_flip = BandstopFilter(probability, sfreq=250)
+    # X_augmented, y = BandstopFilter.operation(X_tensor, y, sfreq=250, bandwidth=2, freqs_to_notch)
+    # total_X = np.vstack((total_X, X_augmented))
+    # total_y = np.hstack((total_y, y)) 
     
 
-    
     #print('Shape of X after data augmentation:', total_X.shape)
     #print('Shape of Y:', total_y.shape)
     return total_X, total_y
