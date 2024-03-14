@@ -1,5 +1,9 @@
 import torch
 import torch.nn as nn
+from utils.seed import *
+from utils.preprocessing import *
+from utils.loops import *
+import matplotlib.pyplot as plt
 
 
 class CNN(nn.Module):
@@ -44,3 +48,58 @@ class CNN(nn.Module):
         for param in self.parameters():
             l1_loss += torch.abs(param).sum()
         return l1_loss
+    
+
+if __name__ == '__main__':
+    ## Instantiate Dataloaders
+    train_dataloader, val_dataloader, test_dataloader = load_data(64)
+    device = torch.device('cpu')
+
+    seed_everything(0)
+
+    # (H - h + 2p) / s + 1
+    # 3 -> 1, 5 -> 2, 7 -> 3, 11 -> 5, 13 -> 6
+    kernel_size = 11
+    pad = 5
+
+    test_model = CNN(kernel_size=kernel_size, pad=pad)
+
+    weight_decay = 1e-2
+
+    lr = 1e-3
+    optimizer = torch.optim.SGD(params=test_model.parameters(), momentum=0.9, lr=lr, weight_decay=weight_decay)
+    criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
+
+    # Train the model
+    history = train(test_model,
+        train_dataloader,
+        val_dataloader,
+        optimizer,
+        criterion,
+        device,
+        num_epochs=50)
+    
+    plt.subplot(2, 1, 1)
+    plt.plot(history['train_accuracy'], '-o')
+    plt.plot(history['val_accuracy'], '-o')
+    plt.legend(['train', 'val'], loc='upper left')
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+
+    # plt.subplot(2, 1, 2)
+    # plt.plot(history['train_loss'], '-o')
+    # plt.plot(history['val_loss'], '-o')
+    # plt.legend(['train', 'val'], loc='upper left')
+    # plt.ylabel('loss')
+    # plt.xlabel('epoch')
+
+    avg_loss, accuracy = evaluate(test_model, test_dataloader, criterion, device)
+    print('Test Accuracy:', accuracy)
+
+    torch.save({
+        'model_state_dict': test_model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'train_hist': history,
+        'test_accuracy': accuracy,
+        'test_loss': avg_loss
+    }, 'weights/cnn_weights.pth')
