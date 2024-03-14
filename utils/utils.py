@@ -9,9 +9,9 @@ def train(model, dataloader, optimizer, criterion, device):
     train_total = 0
 
     for inputs, labels in tqdm(dataloader):
-        inputs = inputs.to(device).float()
+        inputs = inputs.float().to(device)
         labels = torch.argmax(labels, dim=1)
-        labels = labels.to(device).long()
+        labels = labels.long().to(device)
         
         optimizer.zero_grad()
 
@@ -31,20 +31,20 @@ def train(model, dataloader, optimizer, criterion, device):
     return train_loss / len(dataloader), train_correct / train_total
 
 def evaluate(model, dataloader, criterion, device):
-    model.train()
+    model.eval()
     
     val_loss = 0.0
     val_correct = 0
     val_total = 0
 
     for inputs, labels in tqdm(dataloader):
-        inputs = inputs.to(device).float()
+        inputs = inputs.float().to(device)
         labels = torch.argmax(labels, dim=1)
-        labels = labels.to(device).long()
+        labels = labels.long().to(device)
         
-
-        logits = model(inputs)
-        loss = criterion(logits, labels)
+        with torch.no_grad():
+            logits = model(inputs)
+            loss = criterion(logits, labels)
 
         val_loss += loss.item()
         

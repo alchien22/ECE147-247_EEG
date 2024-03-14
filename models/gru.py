@@ -50,3 +50,12 @@ for epoch in range(num_epochs):
     train_loss, train_acc = train(model, train_dataloader, optimizer, criterion, torch.device('cpu'))
     val_loss, val_acc = evaluate(model, val_dataloader, criterion, torch.device('cpu'))
     print(f"Epoch {epoch + 1}/{num_epochs} loss: {train_loss}, acc: {train_acc}, val_loss: {val_loss}, val_acc: {val_acc}")
+    if (epoch + 1) % 5 == 0:
+        torch.save({
+            'model_state_dict': model.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict(),
+            'train_loss': train_loss,
+            'train_acc': train_acc,
+            'val_loss': val_loss,
+            'val_acc': val_acc
+        }, f'gru_epoch{epoch + 1}.pt')
