@@ -3,8 +3,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.optim import Adam
 from typing import List
-from preprocessing import load_data
-from utils import train, evaluate
+from utils.preprocessing import load_data
+from utils.utils import train, evaluate
 
 train_dataloader, val_dataloader, test_dataloader = load_data(batch_size=32)
 
