@@ -2,8 +2,8 @@ from braindecode.models import EEGConformer
 import torch
 import torch.nn as nn
 from torch.optim import Adam
-from utils import train, evaluate
-from preprocessing import load_data
+from utils.utils import train, evaluate
+from utils.preprocessing import load_data
 
 train_dataloader, val_dataloader, test_dataloader = load_data(batch_size=32)
 
