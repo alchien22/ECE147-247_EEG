@@ -3,8 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.optim import Adam
 from typing import List
-from utils.preprocessing import load_data
-from utils.utils import train, evaluate
+from utils.utils import fit
 
 class LSTM(nn.Module):
     def __init__(self, input_dim: int, conv_dims: List[int], hidden_dim: int, num_layers: int):
@@ -41,27 +40,13 @@ class LSTM(nn.Module):
 
 
 if __name__ == '__main__':
-
-    train_dataloader, val_dataloader, test_dataloader = load_data(batch_size=32)
+    device = torch.device('mps')
 
     model = LSTM(input_dim=22, conv_dims=[16, 32, 48, 64], hidden_dim=64, num_layers=1)
     # model = LSTM(input_dim=22, conv_dims=[32, 64], hidden_dim=128, num_layers=1)
-    model.to('mps')
+    model.to(device)
 
     optimizer = Adam(model.parameters(), lr=1e-3)
     criterion = nn.CrossEntropyLoss()
 
-    num_epochs = 100
-    for epoch in range(num_epochs):
-        train_loss, train_acc = train(model, train_dataloader, optimizer, criterion, torch.device('mps'))
-        val_loss, val_acc = evaluate(model, val_dataloader, criterion, torch.device('mps'))
-        print(f"Epoch {epoch + 1}/{num_epochs} loss: {train_loss}, acc: {train_acc}, val_loss: {val_loss}, val_acc: {val_acc}")
-        if (epoch + 1) % 5 == 0:
-            torch.save({
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                'train_loss': train_loss,
-                'train_acc': train_acc,
-                'val_loss': val_loss,
-                'val_acc': val_acc
-            }, f'lstm_epoch{epoch + 1}.pt')
+    fit(model, optimizer, criterion, num_epochs=2, device=device)

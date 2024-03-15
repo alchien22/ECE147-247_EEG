@@ -3,10 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.optim import Adam
 from typing import List
-from utils.preprocessing import load_data
-from utils.utils import train, evaluate
-
-train_dataloader, val_dataloader, test_dataloader = load_data(batch_size=32)
+from utils.utils import fit
 
 class RNN(nn.Module):
     def __init__(self, input_dim: int, conv_dims: List[int], hidden_dim: int, num_layers: int):
@@ -38,14 +35,13 @@ class RNN(nn.Module):
         return out
 
 
-model = RNN(input_dim=22, conv_dims=[32, 64, 128, 256], hidden_dim=128, num_layers=1)
-model.to('cpu')
+if __name__ == "__main__":
+    device = torch.device('cpu')
 
-optimizer = Adam(model.parameters(), lr=1e-3)
-criterion = nn.CrossEntropyLoss()
+    model = RNN(input_dim=22, conv_dims=[32, 64, 128, 256], hidden_dim=128, num_layers=1)
+    model.to(device)
 
-num_epochs = 100
-for epoch in range(num_epochs):
-    train_loss, train_acc = train(model, train_dataloader, optimizer, criterion, torch.device('cpu'))
-    val_loss, val_acc = evaluate(model, val_dataloader, criterion, torch.device('cpu'))
-    print(f"Epoch {epoch + 1}/{num_epochs} loss: {train_loss}, acc: {train_acc}, val_loss: {val_loss}, val_acc: {val_acc}")
+    optimizer = Adam(model.parameters(), lr=1e-3)
+    criterion = nn.CrossEntropyLoss()
+
+    fit(model, optimizer, criterion, num_epochs=100, device=device)
