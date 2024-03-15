@@ -6,7 +6,7 @@ from typing import List
 from utils.utils import fit
 
 class LSTM(nn.Module):
-    def __init__(self, input_dim: int, conv_dims: List[int], hidden_dim: int, num_layers: int):
+    def __init__(self, input_dim: int, conv_dims: List[int], hidden_dim: int, num_layers: int, in_length=400):
         super(LSTM, self).__init__()
         
         self.conv = nn.ModuleList()
@@ -26,7 +26,7 @@ class LSTM(nn.Module):
             prev_dim = dim
         
         self.lstm = nn.LSTM(prev_dim, hidden_dim, num_layers, batch_first=True, bidirectional=True)
-        self.out = nn.Linear(hidden_dim * 200 * 2, 4)
+        self.out = nn.Linear(hidden_dim * (in_length // 2) * 2, 4)
         
     def forward(self, x):
         for layer in self.conv:

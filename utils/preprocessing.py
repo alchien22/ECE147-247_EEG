@@ -201,9 +201,9 @@ def load_data(batch_size, shuffle=True, one_person=False):
         X_test = X_test[person_test[:,0] == 0]
         y_test = y_test[person_test[:,0] == 0]
     
-        new_train_shape =  X_train_valid.shape(0)
+        new_train_shape =  X_train_valid.shape[0]
         # First generating the training and validation indices using random splitting
-        ind_valid = np.random.choice(new_train_shape, np.floor(0.25 * new_train_shape), replace=False)
+        ind_valid = np.random.choice(new_train_shape, int(np.floor(0.25 * new_train_shape)), replace=False)
         ind_train = np.array(list(set(range(new_train_shape)).difference(set(ind_valid))))
     else:
         # First generating the training and validation indices using random splitting
