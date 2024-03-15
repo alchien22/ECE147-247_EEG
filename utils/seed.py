@@ -1,9 +1,10 @@
-def seed_everything(seed: int):
-    import os
-    import random
+import os
+import random
 
-    import numpy as np
-    import torch
+import numpy as np
+import torch
+
+def seed_everything(seed: int):
     random.seed(seed)
     os.environ['PYTHONHASHSEED'] = str(seed)
     np.random.seed(seed)

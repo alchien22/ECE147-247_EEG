@@ -5,18 +5,17 @@ import numpy as np
 
 
 def plot_loss_acc(history):
-    # Plot training and validation loss
     plt.figure(figsize=(10, 5))
+    # Plot training and validation loss
     plt.plot(history['train_loss'], label='Training Loss')
     plt.plot(history['val_loss'], label='Validation Loss')
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.title('Training and Validation Loss')
     plt.legend()
-    plt.show()
 
-    # Plot training and validation accuracy
     plt.figure(figsize=(10, 5))
+    # Plot training and validation accuracy
     plt.plot(history['train_accuracy'], label='Training Accuracy')
     plt.plot(history['val_accuracy'], label='Validation Accuracy')
     plt.xlabel('Epoch')
