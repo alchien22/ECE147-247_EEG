@@ -1,23 +1,11 @@
 import torch
 from tqdm import tqdm
-import matplotlib.pyplot as plt
 import numpy as np
 
 #from torch.utils.tensorboard import SummaryWriter
 
 def train(model, train_loader, val_loader, optimizer, criterion, device, num_epochs):
-    """
-    Train the MLP classifier on the training set and evaluate it on the validation set every epoch.
 
-    Args:
-        model (MLP): MLP classifier to train.
-        train_loader (torch.utils.data.DataLoader): Data loader for the training set.
-        val_loader (torch.utils.data.DataLoader): Data loader for the validation set.
-        optimizer (torch.optim.Optimizer): Optimizer to use for training.
-        criterion (callable): Loss function to use for training.
-        device (torch.device): Device to use for training.
-        num_epochs (int): Number of epochs to train the model.
-    """
     # Place model on device
     model = model.to(device)
     
@@ -97,19 +85,7 @@ def train(model, train_loader, val_loader, optimizer, criterion, device, num_epo
     return history
 
 def evaluate(model, test_loader, criterion, device):
-    """
-    Evaluate the MLP classifier on the test set.
 
-    Args:
-        model (MLP): MLP classifier to evaluate.
-        test_loader (torch.utils.data.DataLoader): Data loader for the test set.
-        criterion (callable): Loss function to use for evaluation.
-        device (torch.device): Device to use for evaluation.
-
-    Returns:
-        float: Average loss on the test set.
-        float: Accuracy on the test set.
-    """
     model.eval()  # Set model to evaluation mode
     #test_writer = SummaryWriter('logs/test')
     with torch.no_grad():
@@ -160,24 +136,22 @@ def test(models, test_loader, device):
             inputs = inputs.float().to(device)
             labels = labels.to(device)
             labels = torch.argmax(labels, dim=1)
-            model = model.float()
 
-            sum_logits = None
+            all_predictions = []
 
             for model in models:
-                logits = model(inputs).float()
-                probabilities = torch.softmax(logits, dim=1)
+                model = model.float().to(device)
+                logits = model(inputs)
+                predictions = torch.argmax(logits, dim=1)  # Get the predictions
+                all_predictions.append(predictions.cpu().numpy())  # Store predictions
 
-            if sum_logits is None:
-                sum_logits = probabilities
-            else:
-                sum_logits += probabilities
-
-            avg_probabilities = sum_logits/len(models)
-            ensemble_predictions = torch.argmax(avg_probabilities, dim=1)
+            # All predictions contains predictions for every sample for every model
+            all_predictions = torch.tensor(np.array(all_predictions))
+            # Get the most popular prediction for every sample
+            ensemble_predictions, _ = torch.mode(all_predictions, dim=0)
 
             num_correct += (ensemble_predictions == labels).sum().item()
-            num_samples += len(inputs)
+            num_samples += labels.size(0)
 
     accuracy = num_correct / num_samples
     return accuracy

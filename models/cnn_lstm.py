@@ -1,47 +1,67 @@
 import torch
-from torch import nn
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.optim import Adam
+from typing import List
+from utils.preprocessing import load_data
+from utils.utils import train, evaluate
 
+class LSTM(nn.Module):
+    def __init__(self, input_dim: int, conv_dims: List[int], hidden_dim: int, num_layers: int):
+        super(LSTM, self).__init__()
+        
+        self.conv = nn.ModuleList()
+        self.input_dim = input_dim
+        self.conv_dims = conv_dims
+        self.hidden_dim = hidden_dim
 
-class cnn_lstm(nn.Module):
-
-    def __init__(self, in_channels=22, dims=[32, 64, 128, 256], num_classes=4, kernel_size=7, stride=1, pad=3, dropout=0.5, num_layers=1, hidden_size=512):
-        super().__init__()
-
-        self.hidden_size = hidden_size
-        self.fc_in = hidden_size
-
-        self.conv_modules = nn.ModuleList()
-        prev_channels = in_channels
-        for dim in dims:
-            conv_block = nn.Sequential(
-                nn.Conv1d(in_channels=prev_channels, out_channels=dim, kernel_size=kernel_size, stride=stride, padding=pad),
-                nn.ELU(),
-                nn.MaxPool1d(kernel_size=2, stride=2),
-                nn.BatchNorm1d(num_features=dim),
-                nn.Dropout(dropout),
-            )
-            self.conv_modules.append(conv_block)
-            prev_channels = dim
-
-        self.lstm = nn.LSTM(input_size=dims[-1], hidden_size=self.hidden_size, num_layers=num_layers, batch_first=True, bidirectional=False)
-        self.fc = nn.Linear(in_features=self.fc_in, out_features=num_classes)
-
-    def forward(self, x: torch.Tensor):
-        for conv_module in self.conv_modules:
-            x = conv_module(x)
-        # x: B, C, L
-        x = x.permute(0, 2, 1)
-        # x: B, L, C
-        x, (h_n, c_n) = self.lstm(x)
-        # x: B, L, hidden_size
-        out = nn.functional.relu(x[:, -1])
-        # out: B, hidden_size
-        out = self.fc(out)
-        # out: B, num_classes
+        prev_dim = input_dim
+        for i, dim in enumerate(conv_dims):
+            self.conv.append(nn.Conv1d(prev_dim, dim, kernel_size=5, padding=2))
+            # self.conv.append(nn.ELU())
+            self.conv.append(nn.ReLU())
+            if i == 1:
+                self.conv.append(nn.MaxPool1d(kernel_size=2, stride=2))
+            self.conv.append(nn.BatchNorm1d(dim))
+            self.conv.append(nn.Dropout(0.4))
+            prev_dim = dim
+        
+        self.lstm = nn.LSTM(prev_dim, hidden_dim, num_layers, batch_first=True, bidirectional=True)
+        self.out = nn.Linear(hidden_dim * 200 * 2, 4)
+        
+    def forward(self, x):
+        for layer in self.conv:
+            x = layer(x)
+        x = torch.transpose(x, 1, 2)
+        # out, (h_n, c_n) = self.lstm(x)
+        # out = self.out(F.relu(out[:, -1]))
+        out, (h_n, c_n) = self.lstm(x)
+        out = self.out(torch.flatten(out, 1))
         return out
-    
-    def compute_l1_loss(self):
-        l1_loss = 0
-        for param in self.parameters():
-            l1_loss += torch.abs(param).sum()
-        return l1_loss
+
+
+if __name__ == '__main__':
+
+    train_dataloader, val_dataloader, test_dataloader = load_data(batch_size=32)
+
+    model = LSTM(input_dim=22, conv_dims=[16, 32, 48, 64], hidden_dim=64, num_layers=1)
+    # model = LSTM(input_dim=22, conv_dims=[32, 64], hidden_dim=128, num_layers=1)
+    model.to('mps')
+
+    optimizer = Adam(model.parameters(), lr=1e-3)
+    criterion = nn.CrossEntropyLoss()
+
+    num_epochs = 100
+    for epoch in range(num_epochs):
+        train_loss, train_acc = train(model, train_dataloader, optimizer, criterion, torch.device('mps'))
+        val_loss, val_acc = evaluate(model, val_dataloader, criterion, torch.device('mps'))
+        print(f"Epoch {epoch + 1}/{num_epochs} loss: {train_loss}, acc: {train_acc}, val_loss: {val_loss}, val_acc: {val_acc}")
+        if (epoch + 1) % 5 == 0:
+            torch.save({
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'train_loss': train_loss,
+                'train_acc': train_acc,
+                'val_loss': val_loss,
+                'val_acc': val_acc
+            }, f'lstm_epoch{epoch + 1}.pt')
