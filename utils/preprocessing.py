@@ -166,7 +166,7 @@ def to_categorical(y, num_classes):
     return np.eye(num_classes, dtype='uint8')[y]
 
 
-def load_data(batch_size, shuffle=True):
+def load_data(batch_size, shuffle=True, one_person=False):
     """Loads data from numpy files.
 
     Args:
@@ -194,10 +194,21 @@ def load_data(batch_size, shuffle=True):
 
     y_train_valid -= 769
     y_test -= 769
+
+    if one_person == True:
+        X_train_valid = X_train_valid[person_train_valid[:,0] == 0]
+        y_train_valid = y_train_valid[person_train_valid[:,0] == 0]
+        X_test = X_test[person_test[:,0] == 0]
+        y_test = y_test[person_test[:,0] == 0]
     
-    # First generating the training and validation indices using random splitting
-    ind_valid = np.random.choice(2115, 1000, replace=False)
-    ind_train = np.array(list(set(range(2115)).difference(set(ind_valid))))
+        new_train_shape =  X_train_valid.shape(0)
+        # First generating the training and validation indices using random splitting
+        ind_valid = np.random.choice(new_train_shape, np.floor(0.25 * new_train_shape), replace=False)
+        ind_train = np.array(list(set(range(new_train_shape)).difference(set(ind_valid))))
+    else:
+        # First generating the training and validation indices using random splitting
+        ind_valid = np.random.choice(2115, 500, replace=False)
+        ind_train = np.array(list(set(range(2115)).difference(set(ind_valid))))
 
     # Creating the training and validation sets using the generated indices
     (X_train, X_valid) = X_train_valid[ind_train], X_train_valid[ind_valid] 

@@ -124,8 +124,8 @@ def evaluate(model, test_loader, criterion, device):
     return avg_loss, accuracy
 
 
-def test(models, test_loader, device):
-    for model in models:
+def test_majority(models, test_loader, device):
+    for name, model in models.items():
         model.eval()  # Set model to evaluation mode
 
     num_correct = 0
@@ -139,11 +139,13 @@ def test(models, test_loader, device):
 
             all_predictions = []
 
-            for model in models:
+            for name, model in models.items():
                 model = model.float().to(device)
                 logits = model(inputs)
                 predictions = torch.argmax(logits, dim=1)  # Get the predictions
                 all_predictions.append(predictions.cpu().numpy())  # Store predictions
+                # if name == 'cnn':
+                #     all_predictions.append(predictions.cpu().numpy())
 
             # All predictions contains predictions for every sample for every model
             all_predictions = torch.tensor(np.array(all_predictions))
@@ -152,6 +154,42 @@ def test(models, test_loader, device):
 
             num_correct += (ensemble_predictions == labels).sum().item()
             num_samples += labels.size(0)
+
+    accuracy = num_correct / num_samples
+    return accuracy
+
+
+
+def test_average(models, test_loader, device):
+    for name, model in models.items():
+        model.eval()  # Set model to evaluation mode
+
+    num_correct = 0
+    num_samples = 0
+
+    with torch.no_grad():
+        for inputs, labels in test_loader:
+            inputs = inputs.float().to(device)
+            labels = labels.to(device)
+            labels = torch.argmax(labels, dim=1)
+            model = model.float()
+
+            sum_logits = None
+
+            for name, model in models.items():
+                logits = model(inputs).float()
+                probabilities = torch.softmax(logits, dim=1)
+
+            if sum_logits is None:
+                sum_logits = probabilities
+            else:
+                sum_logits += probabilities
+
+            avg_probabilities = sum_logits/len(models)
+            ensemble_predictions = torch.argmax(avg_probabilities, dim=1)
+
+            num_correct += (ensemble_predictions == labels).sum().item()
+            num_samples += len(inputs)
 
     accuracy = num_correct / num_samples
     return accuracy

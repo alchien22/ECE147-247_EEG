@@ -16,7 +16,7 @@ class LSTM(nn.Module):
 
         prev_dim = input_dim
         for i, dim in enumerate(conv_dims):
-            self.conv.append(nn.Conv1d(prev_dim, dim, kernel_size=5, padding=2))
+            self.conv.append(nn.Conv1d(prev_dim, dim, kernel_size=11, padding=5))
             # self.conv.append(nn.ELU())
             self.conv.append(nn.ReLU())
             if i == 1:
