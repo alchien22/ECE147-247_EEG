@@ -5,3 +5,7 @@ env/
 __pycache__
 .DS_Store
 myenv/
+0-400/
+weights/
+weights_new/
+one_subjects_weights/
