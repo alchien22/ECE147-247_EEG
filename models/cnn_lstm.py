@@ -25,8 +25,8 @@ class LSTM(nn.Module):
             self.conv.append(nn.Dropout(0.4))
             prev_dim = dim
         
-        self.lstm = nn.LSTM(prev_dim, hidden_dim, num_layers, batch_first=True, bidirectional=True)
-        self.out = nn.Linear(hidden_dim * (in_length // 2) * 2, 4)
+        self.lstm = nn.LSTM(prev_dim, hidden_dim, num_layers, batch_first=True, bidirectional=False)
+        self.out = nn.Linear(hidden_dim * (in_length // 2), 4)
         
     def forward(self, x):
         for layer in self.conv:

@@ -21,7 +21,7 @@ class CNN_Attention_Model(nn.Module):
         self.dropout = nn.Dropout1d(0.5)
         
         #200*4
-        self.fc1 = nn.Linear(13*256, out_features=18) 
+        self.fc1 = nn.Linear(1536, out_features=18) 
         self.fc2 = nn.Linear(18, out_features=4)
         
     def forward(self, x):

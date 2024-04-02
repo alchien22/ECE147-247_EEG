@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from utils.utils import fit
 
 class CNN(nn.Module):
-    def __init__(self, in_channels=22, in_length=400, conv_blocks=3, dims=[64, 128, 256], num_classes=4, kernel_size=11, stride=1, pad=5, dropout=0.5):
+    def __init__(self, in_channels=22, in_length=400, conv_blocks=3, dims=[32, 64, 128], num_classes=4, kernel_size=11, stride=1, pad=5, dropout=0.5):
         super().__init__()
         
         self.conv_modules = nn.ModuleList()
